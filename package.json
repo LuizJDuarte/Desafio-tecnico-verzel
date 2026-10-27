@@ -1,0 +1,45 @@
+{
+  "name": "arremate",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Arremate: casa de leilões online com lances ao vivo e histórico de lances auditável (desafio técnico Elite Dev / Verzel).",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "workspaces": [
+    "packages/shared",
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "npm run build -w @arremate/shared && concurrently -k -n shared,api,web -c gray,blue,magenta \"npm run dev -w @arremate/shared\" \"npm run dev -w @arremate/api\" \"npm run dev -w @arremate/web\"",
+    "build": "npm run build -w @arremate/shared && npm run build -w @arremate/api && npm run build -w @arremate/web",
+    "start": "npm run start:prod -w @arremate/api",
+    "db:migrate": "npm run db:migrate -w @arremate/api",
+    "db:seed": "npm run db:seed -w @arremate/api",
+    "db:reset": "npm run db:reset -w @arremate/api",
+    "audit:tamper": "npm run audit:tamper -w @arremate/api --",
+    "test": "npm run test -w @arremate/shared && npm run test -w @arremate/api && npm run test -w @arremate/web",
+    "test:integration": "npm run test:integration -w @arremate/api",
+    "test:e2e": "playwright test",
+    "test:all": "npm run test && npm run test:integration && npm run test:e2e",
+    "lint": "eslint .",
+    "typecheck": "npm run typecheck -w @arremate/shared && npm run typecheck -w @arremate/api && npm run typecheck -w @arremate/web",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "1.63.0",
+    "@types/node": "^22.20.5",
+    "concurrently": "^9.2.5",
+    "eslint": "^10.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.72.1"
+  }
+}

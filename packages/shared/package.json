@@ -1,0 +1,20 @@
+{
+  "name": "@arremate/shared",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Contratos da API, regras de lance e verificação da auditoria compartilhados entre API e front-end.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.7"
+  }
+}

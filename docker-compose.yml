@@ -1,0 +1,49 @@
+# Sobe a aplicação completa (PostgreSQL + API servindo o front) com um comando:
+#   docker compose up --build
+# Depois acesse http://localhost:3000. Para subir só o banco (desenvolvimento com npm run dev):
+#   docker compose up -d db
+name: arremate
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: arremate
+      POSTGRES_PASSWORD: arremate
+      POSTGRES_DB: arremate
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init-test-databases.sql:/docker-entrypoint-initdb.d/init-test-databases.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U arremate -d arremate']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    init: true
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '${APP_PORT:-3000}:3000'
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgres://arremate:arremate@db:5432/arremate
+      # Segredos de uso local. Em produção, gere valores longos e aleatórios.
+      JWT_SECRET: ${JWT_SECRET:-segredo-jwt-local-troque-em-producao}
+      AUDIT_SIGNING_SECRET: ${AUDIT_SIGNING_SECRET:-segredo-de-auditoria-local-troque-em-producao}
+      PSEUDONYM_SECRET: ${PSEUDONYM_SECRET:-segredo-de-pseudonimos-local-troque-em-producao}
+      # http://localhost não tem HTTPS: o cookie de sessão não pode exigir conexão segura.
+      COOKIE_SECURE: 'false'
+      TRUST_PROXY: 'false'
+      SEED_DEMO_DATA: 'true'
+      CATALOG_PROVIDER: ${CATALOG_PROVIDER:-artic}
+      ARTIC_CONTACT: ${ARTIC_CONTACT:-}
+
+volumes:
+  pgdata:

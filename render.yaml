@@ -1,0 +1,34 @@
+# Render Blueprint: cria o serviço web a partir deste repositório (New > Blueprint no painel do Render).
+# O banco é o PostgreSQL gratuito do Neon: a connection string é pedida na criação (DATABASE_URL).
+# Os três segredos são gerados pelo próprio Render uma única vez e ficam fixos depois disso.
+services:
+  - type: web
+    name: arremate
+    runtime: node
+    plan: free
+    # Virginia fica perto do Neon em AWS us-east-1 (N. Virginia): menos latência entre API e banco.
+    region: virginia
+    buildCommand: npm ci --include=dev && npm run build
+    # node direto (sem o npm no meio): menos memória no plano gratuito e sinais de parada entregues ao processo.
+    startCommand: node apps/api/dist/main.js
+    healthCheckPath: /api/health/live
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: '22'
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_POOL_MAX
+        value: '5'
+      - key: JWT_SECRET
+        generateValue: true
+      # Nunca troque os dois segredos abaixo depois que houver lances (ver README).
+      - key: AUDIT_SIGNING_SECRET
+        generateValue: true
+      - key: PSEUDONYM_SECRET
+        generateValue: true
+      - key: SEED_DEMO_DATA
+        value: 'true'
+      - key: CATALOG_PROVIDER
+        value: artic
