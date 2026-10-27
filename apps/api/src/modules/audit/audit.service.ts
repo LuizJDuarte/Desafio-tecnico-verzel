@@ -75,6 +75,8 @@ export class AuditService {
         id: 'IDENTITIES',
         detail:
           'Cada pseudônimo corresponde ao licitante real que deu o lance (checagem feita no servidor, sem expor quem é).',
+        failedDetail:
+          'Há pseudônimo que não corresponde mais ao licitante real que deu o lance (checagem feita no servidor, sem expor quem é).',
       },
       identityIssues,
     );

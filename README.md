@@ -1,11 +1,15 @@
 # Arremate
 
+[![CI](https://github.com/LuizJDuarte/Desafio-tecnico-verzel/actions/workflows/ci.yml/badge.svg)](https://github.com/LuizJDuarte/Desafio-tecnico-verzel/actions/workflows/ci.yml)
+
 Casa de leilões online de obras em domínio público do Art Institute of Chicago. O leiloeiro monta lotes a partir do acervo do museu e os licitantes disputam com lances ao vivo, usando uma carteira com saldo comprometido. Todo o histórico de lances é encadeado e assinado digitalmente, e qualquer pessoa pode auditá-lo sem login.
 
 Projeto desenvolvido para o desafio técnico Elite Dev da Verzel (vaga de Desenvolvedor(a) Júnior Full Stack).
 
-- **Aplicação no ar:** https://SEU-SERVICO.onrender.com (substituir pelo link do deploy)
-- **Documentação interativa da API (Swagger):** `/api/docs` no mesmo endereço
+- **Aplicação no ar:** https://arremate-n7v0.onrender.com
+- **Lote principal, ao vivo:** [sala do lote 6](https://arremate-n7v0.onrender.com/lotes/66a66699-35bf-425e-a223-06ae3f5cc260)
+- **Auditoria acusando adulteração:** [lote 3](https://arremate-n7v0.onrender.com/auditoria/da315ac5-440f-4b18-847c-babb442e1796) (e um histórico íntegro no [lote 1](https://arremate-n7v0.onrender.com/auditoria/dd6a7e9e-ed71-418f-8f66-1e4b40339127))
+- **Documentação interativa da API (Swagger):** https://arremate-n7v0.onrender.com/api/docs
 - **Contas de demonstração:** senha `arremate123` para todas (detalhes abaixo)
 
 > O plano gratuito do Render hiberna o servidor depois de 15 minutos sem acesso. O primeiro carregamento pode levar até um minuto; depois disso tudo responde normalmente.
@@ -100,7 +104,7 @@ A página **Como funciona** (no menu) resume as regras para quem usa a aplicaç�
 | Opcional: busca e filtro                                           | Vitrine com busca por título ou artista, abas e 5 ordenações; busca no acervo do museu no painel                                                                   |
 | Opcional: cancelamento com estorno automático                      | Lote com lances pode ser cancelado até o fim; o valor comprometido do líder volta ao disponível na mesma transação                                                 |
 | Opcional: Docker Compose                                           | `docker compose up --build` sobe banco e aplicação                                                                                                                 |
-| Opcional: testes automatizados                                     | 164 testes de unidade, integração e ponta a ponta, rodando no GitHub Actions ([detalhes](#testes-automatizados))                                                   |
+| Opcional: testes automatizados                                     | 165 testes de unidade, integração e ponta a ponta, rodando no GitHub Actions ([detalhes](#testes-automatizados))                                                   |
 | Opcional: modo escuro                                              | Botão no topo; respeita a preferência do sistema na primeira visita                                                                                                |
 | README, deploy, seed                                               | Este documento, `render.yaml` (Render + Neon) e seed automática na primeira inicialização                                                                          |
 
@@ -285,7 +289,7 @@ Modos: `update-amount`, `delete-middle`, `delete-last`, `insert-fake`, `swap-bid
 
 - **Quem tem o segredo de assinatura** (acesso às variáveis de ambiente do servidor) consegue reescrever o histórico com assinaturas válidas. Em produção real, a chave ficaria num KMS ou HSM, fora do alcance de quem administra o banco.
 - **Reversão completa para um backup antigo** (todos os registros de um lote voltando juntos para um estado anterior válido) produz um histórico consistente e assinado. Para fechar essa porta, o próximo passo seria ancorar periodicamente os selos em um local externo e independente (por exemplo, um repositório público ou um serviço de carimbo de tempo).
-- A chave pública vem do próprio servidor. Para uma conferência independente de verdade, compare o `keyId` com um valor anotado previamente.
+- A chave pública vem do próprio servidor. Para uma conferência independente de verdade, compare com o valor anotado aqui: no deploy, a chave Ed25519 tem `keyId` **`3f1eb8d335770cca`** (valor `Ii829MY4xUf4FYJky5jwr6uyrWc8IItABqusexrm-U4`, em base64url).
 
 ## Privacidade
 
@@ -380,7 +384,7 @@ npm start
 
 | Camada                        | Ferramenta                   | Quantidade | O que cobre                                                                                                                                                                               |
 | ----------------------------- | ---------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unidade: pacote compartilhado | Vitest                       | 41         | Regras de lance, prorrogação, conversão de valores e o verificador da auditoria contra cada tipo de adulteração                                                                           |
+| Unidade: pacote compartilhado | Vitest                       | 42         | Regras de lance, prorrogação, conversão de valores e o verificador da auditoria contra cada tipo de adulteração                                                                           |
 | Unidade: API                  | Jest                         | 31         | Configuração, criptografia da auditoria, cache "stale-if-error", circuit breaker, limitador e mapeamento da API do museu                                                                  |
 | Unidade: front-end            | Vitest + Testing Library     | 19         | Painel de lance (mensagens, estados, valores), canal de tempo real, formatação e verificação da auditoria no navegador                                                                    |
 | Integração: API + PostgreSQL  | Jest + Supertest + Socket.IO | 64         | Autenticação e papéis, carteira, regras de lance, concorrência, liquidação, cancelamento, auditoria contra SQL direto, tempo real e queda da API externa                                  |

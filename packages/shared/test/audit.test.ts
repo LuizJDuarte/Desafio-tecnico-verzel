@@ -51,6 +51,19 @@ describe('verifyAuditBundle: detecta adulteração', () => {
     expect(codes).toContain('BID_SIGNATURE_INVALID');
   });
 
+  it('verificação reprovada não exibe o texto de sucesso', async () => {
+    const intact = await verifyAuditBundle(buildBundle(THREE_BIDS), nodeAuditCrypto);
+    const bundle = buildBundle(THREE_BIDS);
+    bundle.bids[1].amountCents = 999_999;
+    const report = await verifyAuditBundle(bundle, nodeAuditCrypto);
+    const chain = report.checks.find((check) => check.id === 'CHAIN')!;
+    expect(chain.ok).toBe(false);
+    expect(chain.detail).toContain('foi quebrado');
+    expect(chain.detail).not.toBe(intact.checks.find((check) => check.id === 'CHAIN')!.detail);
+    // As que passaram continuam com o texto de sucesso.
+    expect(report.checks.find((check) => check.id === 'GENESIS')).toMatchObject({ ok: true });
+  });
+
   it('valor alterado e hash recalculado (o atacante conhece SHA-256)', async () => {
     const bundle = buildBundle(THREE_BIDS);
     const bid = bundle.bids[1];

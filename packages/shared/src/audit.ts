@@ -465,47 +465,46 @@ export async function verifyAuditBundle(bundle: AuditBundle, crypto: AuditCrypto
   }
 
   const failed = (id: AuditCheckId) => issues.some((issue) => issue.check === id);
+  // O texto acompanha o resultado: uma verificação reprovada nunca exibe a frase de sucesso.
+  const check = (id: AuditCheckId, passedDetail: string, failedDetail: string): AuditCheck => ({
+    id,
+    label: CHECK_LABELS[id],
+    ok: !failed(id),
+    detail: failed(id) ? failedDetail : passedDetail,
+  });
   const checks: AuditCheck[] = [
-    {
-      id: 'GENESIS',
-      label: CHECK_LABELS.GENESIS,
-      ok: !failed('GENESIS'),
-      detail:
-        'Item, lance inicial, incremento, datas e regra de prorrogação conferem com o registro assinado na criação.',
-    },
-    {
-      id: 'CHAIN',
-      label: CHECK_LABELS.CHAIN,
-      ok: !failed('CHAIN'),
-      detail: `${bids.length} lance(s) encadeados por SHA-256, cada um apontando para o anterior, sem lacunas.`,
-    },
-    {
-      id: 'SIGNATURES',
-      label: CHECK_LABELS.SIGNATURES,
-      ok: !failed('SIGNATURES'),
-      detail: `${validBidSignatures} de ${bids.length} lance(s) com assinatura Ed25519 válida.`,
-    },
-    {
-      id: 'HEAD',
-      label: CHECK_LABELS.HEAD,
-      ok: !failed('HEAD'),
-      detail: 'Quantidade de lances, último lance, prazo final, líder e situação conferem com o selo assinado.',
-    },
-    {
-      id: 'RULES',
-      label: CHECK_LABELS.RULES,
-      ok: !failed('RULES'),
-      detail: 'Cada lance respeita a janela do lote, o mínimo, o incremento, a vez do líder e a prorrogação.',
-    },
-    {
-      id: 'RECEIPT',
-      label: CHECK_LABELS.RECEIPT,
-      ok: !failed('RECEIPT'),
-      detail:
-        receiptApplies || bundle.receipt
-          ? 'O comprovante assinado corresponde ao último lance da cadeia.'
-          : 'Não se aplica: o lote não foi arrematado (ainda).',
-    },
+    check(
+      'GENESIS',
+      'Item, lance inicial, incremento, datas e regra de prorrogação conferem com o registro assinado na criação.',
+      'Os termos gravados (item, valores, datas ou regra de prorrogação) não conferem com o registro assinado na criação.',
+    ),
+    check(
+      'CHAIN',
+      `${bids.length} lance(s) encadeados por SHA-256, cada um apontando para o anterior, sem lacunas.`,
+      'O encadeamento SHA-256 foi quebrado: há lance alterado, removido, inserido ou fora de ordem.',
+    ),
+    check(
+      'SIGNATURES',
+      `${validBidSignatures} de ${bids.length} lance(s) com assinatura Ed25519 válida.`,
+      `${validBidSignatures} de ${bids.length} lance(s) com assinatura Ed25519 válida: há registro que não foi assinado pelo servidor.`,
+    ),
+    check(
+      'HEAD',
+      'Quantidade de lances, último lance, prazo final, líder e situação conferem com o selo assinado.',
+      'O estado atual do lote (lances, último lance, prazo final, líder ou situação) não confere com o selo assinado.',
+    ),
+    check(
+      'RULES',
+      'Cada lance respeita a janela do lote, o mínimo, o incremento, a vez do líder e a prorrogação.',
+      'Há lance que não poderia ter sido aceito pelas regras do lote.',
+    ),
+    check(
+      'RECEIPT',
+      receiptApplies || bundle.receipt
+        ? 'O comprovante assinado corresponde ao último lance da cadeia.'
+        : 'Não se aplica: o lote não foi arrematado (ainda).',
+      'O comprovante não confere com a cadeia de lances ou com a assinatura do servidor.',
+    ),
   ];
 
   return {
@@ -523,21 +522,17 @@ export async function verifyAuditBundle(bundle: AuditBundle, crypto: AuditCrypto
  */
 export function withAdditionalCheck(
   report: AuditReport,
-  check: { id: AuditCheckId; detail: string },
+  check: { id: AuditCheckId; detail: string; failedDetail: string },
   extraIssues: AuditIssue[],
 ): AuditReport {
   const issues = [...report.issues, ...extraIssues];
+  const ok = !extraIssues.some((issue) => issue.check === check.id);
   return {
     ...report,
     verdict: issues.length === 0 ? 'INTACT' : 'TAMPERED',
     checks: [
       ...report.checks,
-      {
-        id: check.id,
-        label: CHECK_LABELS[check.id],
-        ok: !extraIssues.some((issue) => issue.check === check.id),
-        detail: check.detail,
-      },
+      { id: check.id, label: CHECK_LABELS[check.id], ok, detail: ok ? check.detail : check.failedDetail },
     ],
     issues,
   };
